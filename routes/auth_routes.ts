@@ -16,3 +16,5 @@ auth_router.post("/login", async (ctx) => {
   ctx.response.status = 200;
   ctx.response.body = toUserMinDto(toUserDto(user));
 });
+
+export { auth_router };
