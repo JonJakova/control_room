@@ -1,6 +1,6 @@
 import { Router } from "../dependecies.ts";
 import { CameraDto } from "../models/camera.ts";
-import { generic_promise_adapter } from "../utils/generic_promise_apater.ts";
+import { generic_promise_adapter } from "../utils/generic_promise_adapter.ts";
 import { get_cameras, save_camera } from "./services/camera_service.ts";
 
 const camera_router = new Router();

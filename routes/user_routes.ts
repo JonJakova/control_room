@@ -1,6 +1,6 @@
 import { Router } from "../dependecies.ts";
 import { toUserDto, toUserMinDto, UserDto } from "../models/user.ts";
-import { generic_promise_adapter } from "../utils/generic_promise_apater.ts";
+import { generic_promise_adapter } from "../utils/generic_promise_adapter.ts";
 import { get_users, get_user, save_user } from "./services/user_service.ts";
 
 const user_router = new Router();
