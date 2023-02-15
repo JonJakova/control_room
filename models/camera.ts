@@ -1,14 +1,24 @@
 export const CAMERA_COLLECTION = "camera";
 
 export interface CameraCollection {
-    _id: string;
-    username: string;
-    created_at: Date;
-    deleted: boolean;
+  _id: string;
+  alias: string;
+  owner: string;
+  state: CameraState;
+  created_at: Date;
+  deleted: boolean;
 }
 
 export interface CameraDto {
-    username: string;
-    created_at: Date;
-    deleted: boolean;
+  alias?: string;
+  owner: string;
+  state: CameraState;
+  created_at: Date;
+  deleted: boolean;
+}
+
+export enum CameraState {
+  OFFLINE = "offline",
+  ONLINE = "online",
+  ERROR = "error",
 }

@@ -18,30 +18,32 @@ export const get_user = (id: string) => {
 export const get_user_by_username = (username: string) => {
   const users = control_room_db
     .collection<UserCollection>(USER_COLLECTION)
-    .findOne(
-      { username: username, deleted: false },
-      { sort: { created_at: -1 } }
-    );
+    .findOne({ email: username, deleted: false });
   return users;
 };
 
 export const save_user = async (user: UserDto) => {
-  user.created_at = new Date();
-  user.deleted = false;
-  user.password = await hash(user.password);
+  (await get_user_by_username(user.email)) && Error("User already exists");
+  const user_to_save = {
+    email: user.email,
+    password: await hash(user.password),
+    created_at: new Date(),
+    deleted: false,
+  };
   return control_room_db
     .collection<UserCollection>(USER_COLLECTION)
-    .insertOne(user);
+    .insertOne(user_to_save);
 };
 
-export const update_user = async (id: string, user: UserDto) => {
-  const user_to_update = await get_user(id);
+export const update_user = async (user: UserDto) => {
+  if (!user.id) return Error("Id not sent");
+  const user_to_update = await get_user(user.id);
   if (!user_to_update) return Error("User not found");
-  user.username && (user_to_update.username = user.username);
+  user.password && (user_to_update.password = await hash(user.password));
   user.deleted && (user_to_update.deleted = user.deleted);
   return control_room_db
     .collection<UserCollection>(USER_COLLECTION)
-    .updateOne({ _id: { $oid: id } }, { $set: user_to_update });
+    .updateOne({ _id: { $oid: user.id } }, { $set: user_to_update });
 };
 
 export const delete_user = (id: string) => {
@@ -56,9 +58,7 @@ export const delete_user = (id: string) => {
 export const login = async (username: string, password: string) => {
   const user = await get_user_by_username(username);
   if (!user) return Error("User not found");
-  if (await compare(password, user.password)) {
-    return user;
-  } else {
-    return Error("Wrong password");
-  }
+  return (await compare(password, user.password))
+    ? user
+    : Error("Wrong password");
 };

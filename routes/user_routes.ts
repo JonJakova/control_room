@@ -1,7 +1,7 @@
 import { Router } from "../dependecies.ts";
 import { toUserDto, toUserMinDto, UserDto } from "../models/user.ts";
 import { generic_promise_adapter } from "../utils/generic_promise_adapter.ts";
-import { get_users, get_user, save_user } from "./services/user_service.ts";
+import { get_users, get_user, save_user, update_user } from "./services/user_service.ts";
 
 const user_router = new Router();
 user_router.prefix("/users");
@@ -42,7 +42,29 @@ user_router.post("/", async (ctx) => {
     const new_user_id = await save_user(user);
     console.log("User stored");
     ctx.response.status = 200;
-    ctx.response.body = { _id: new_user_id};
+    ctx.response.body = { id: new_user_id};
+});
+
+user_router.patch("/", async (ctx) => {
+    console.log("Updating user");
+    const req_body = await generic_promise_adapter<UserDto>(ctx.request.body().value);
+
+    if (req_body instanceof Error) {
+        console.log("No body in request");
+        ctx.response.status = 400;
+        ctx.response.body = "Bad Request";
+        return;
+    }
+
+    const user: UserDto = await ctx.request.body().value;
+    const updated_user = await update_user(user);
+    if (updated_user instanceof Error) {
+        ctx.response.status = 404;
+        ctx.response.body = "User not found";
+        return;
+    }
+    console.log("User updated");
+    ctx.response.status = 200;
 });
 
 export { user_router };
