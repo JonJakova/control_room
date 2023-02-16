@@ -1,4 +1,5 @@
 import { control_room_db } from "../../config/mongo_connector.ts";
+import { ObjectId } from "../../dependecies.ts";
 import { UserCollection, UserDto, USER_COLLECTION } from "../../models/user.ts";
 import { hash, compare } from "../../security/encryption.ts";
 
@@ -12,7 +13,8 @@ export const get_users = () => {
 export const get_user = (id: string) => {
   return control_room_db
     .collection<UserCollection>(USER_COLLECTION)
-    .findOne({ _id: { $oid: id }, deleted: false });
+    .findOne({ _id: new ObjectId(id), deleted: false });
+    // .findOne({ _id: { $oid: id }, deleted: false });
 };
 
 export const get_user_by_username = (username: string) => {
@@ -27,6 +29,7 @@ export const save_user = async (user: UserDto) => {
   const user_to_save = {
     email: user.email,
     password: await hash(user.password),
+    roles: user.roles || [],
     created_at: new Date(),
     deleted: false,
   };
@@ -37,10 +40,14 @@ export const save_user = async (user: UserDto) => {
 
 export const update_user = async (user: UserDto) => {
   if (!user.id) return Error("Id not sent");
+
   const user_to_update = await get_user(user.id);
   if (!user_to_update) return Error("User not found");
+
   user.password && (user_to_update.password = await hash(user.password));
+  user.roles && (user_to_update.roles = user.roles);
   user.deleted && (user_to_update.deleted = user.deleted);
+
   return control_room_db
     .collection<UserCollection>(USER_COLLECTION)
     .updateOne({ _id: { $oid: user.id } }, { $set: user_to_update });

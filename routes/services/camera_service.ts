@@ -1,4 +1,5 @@
 import { control_room_db } from "../../config/mongo_connector.ts";
+import { ObjectId } from "../../dependecies.ts";
 import {
   CameraCollection,
   CameraDto,
@@ -16,7 +17,7 @@ export const get_cameras = () => {
 export const get_camera = (id: string) => {
   return control_room_db
     .collection<CameraCollection>(CAMERA_COLLECTION)
-    .findOne({ _id: { $oid: id }, deleted: false });
+    .findOne({ _id: new ObjectId(id), deleted: false });
 };
 
 export const get_camera_by_owner = (owner: string) => {
@@ -43,8 +44,10 @@ export const save_camera = (camera: CameraDto) => {
 export const update_camera = async (id: string, camera: CameraDto) => {
   const camera_to_update = await get_camera(id);
   if (!camera_to_update) return Error("Camera not found");
+
   camera.state && (camera_to_update.state = camera.state);
   camera.deleted && (camera_to_update.deleted = camera.deleted);
+  
   return control_room_db
     .collection<CameraCollection>(CAMERA_COLLECTION)
     .updateOne({ _id: { $oid: id } }, { $set: camera_to_update });
