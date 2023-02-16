@@ -1,6 +1,6 @@
 import { Router } from "../dependecies.ts";
-import { toUserDto, toUserMinDto } from "../models/user.ts";
 import { login } from "./services/user_service.ts";
+import { generate_token } from "../security/jwt/token.ts";
 
 const auth_router = new Router();
 auth_router.prefix("/auth");
@@ -14,7 +14,16 @@ auth_router.post("/login", async (ctx) => {
     return;
   }
   ctx.response.status = 200;
-  ctx.response.body = toUserMinDto(toUserDto(user));
+  ctx.response.body = {
+    id: user._id,
+    email: user.email,
+    roles: user.roles,
+    token: await generate_token({
+      id: user._id,
+      email: user.email,
+      roles: user.roles,
+    }),
+  };
 });
 
 export { auth_router };

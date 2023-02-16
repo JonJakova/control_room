@@ -10,6 +10,7 @@ export interface CameraCollection {
 }
 
 export interface CameraDto {
+  id?: string;
   alias?: string;
   owner: string;
   state: CameraState;
