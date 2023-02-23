@@ -1,7 +1,7 @@
 import { Router } from "../dependecies.ts";
 import { CameraDto } from "../models/camera.ts";
 import { generic_promise_adapter } from "../utils/generic_promise_adapter.ts";
-import { authorize } from "../security/jwt/authority_check.ts";
+import { authorize, authorize_admin_role, authorize_user_role } from "../security/jwt/authority_check.ts";
 import {
   get_camera,
   get_cameras,
@@ -13,14 +13,14 @@ import {
 const camera_router = new Router();
 camera_router.prefix("/cameras");
 
-camera_router.get("/", authorize, async (ctx) => {
+camera_router.get("/", authorize_user_role, async (ctx) => {
   console.log("Getting camera list");
   const cameras = await get_cameras();
   ctx.response.status = 200;
   ctx.response.body = cameras;
 });
 
-camera_router.get("/:id", authorize, async (ctx) => {
+camera_router.get("/:id", authorize_admin_role, async (ctx) => {
   console.log("Getting camera");
   const camera_id = ctx.params.id;
   const camera = await get_camera(camera_id);
@@ -39,7 +39,7 @@ camera_router.get("/:id", authorize, async (ctx) => {
   };
 });
 
-camera_router.get("/owner/:owner", authorize, async (ctx) => {
+camera_router.get("/owner/:owner", authorize_user_role, async (ctx) => {
   console.log("Getting camera list by owner");
   const owner = ctx.params.owner;
   const cameras = await get_camera_by_owner(owner);
@@ -54,7 +54,7 @@ camera_router.get("/owner/:owner", authorize, async (ctx) => {
   });
 });
 
-camera_router.post("/", authorize, async (ctx) => {
+camera_router.post("/", authorize_user_role, async (ctx) => {
   console.log("Storing camera");
   const camera = await generic_promise_adapter<CameraDto>(
     ctx.request.body().value
@@ -88,7 +88,7 @@ camera_router.patch("/", authorize, async (ctx) => {
   }
 
   // Store the camera in the database
-  const updated_camera = await update_camera(camera.id, camera);
+  const updated_camera = await update_camera(camera.id, camera, ctx.state.user);
   if (!updated_camera) {
     console.log("Camera not found");
     ctx.response.status = 404;

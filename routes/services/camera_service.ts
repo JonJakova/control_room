@@ -41,19 +41,19 @@ export const save_camera = (camera: CameraDto) => {
     .insertOne(new_camera);
 };
 
-export const update_camera = async (id: string, camera: CameraDto) => {
-  const camera_to_update = await get_camera(id);
-  if (!camera_to_update) return Error("Camera not found");
+export const update_camera = async (camera_id: string, camera: CameraDto, user_id: string) => {
+  const camera_to_update = await get_camera(camera_id);
+  if (!camera_to_update || camera_to_update._id !== user_id) return Error("Camera not found");
 
   camera.state && (camera_to_update.state = camera.state);
   camera.deleted && (camera_to_update.deleted = camera.deleted);
   
   return control_room_db
     .collection<CameraCollection>(CAMERA_COLLECTION)
-    .updateOne({ _id: { $oid: id } }, { $set: camera_to_update });
+    .updateOne({ _id: { $oid: camera_id } }, { $set: camera_to_update });
 };
 
-export const delete_camera = (id: string) => {
+export const change_delete_camera = (id: string) => {
   return control_room_db
     .collection<CameraCollection>(CAMERA_COLLECTION)
     .updateOne({ _id: { $oid: id } }, { $set: { deleted: true } })
