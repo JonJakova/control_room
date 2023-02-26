@@ -37,6 +37,7 @@ export const authorize_user_role = async (ctx: any, next: any) => {
     ctx.response.body = "Unauthorized";
     return;
   }
+  ctx.state.user = user;
   await next();
 };
 
@@ -54,5 +55,6 @@ export const authorize_admin_role = async (ctx: any, next: any) => {
     ctx.response.body = "Unauthorized";
     return;
   }
+  ctx.state.user = user;
   await next();
 };

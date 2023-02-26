@@ -14,7 +14,6 @@ export const get_user = (id: string) => {
   return control_room_db
     .collection<UserCollection>(USER_COLLECTION)
     .findOne({ _id: new ObjectId(id), deleted: false });
-    // .findOne({ _id: { $oid: id }, deleted: false });
 };
 
 export const get_user_by_username = (username: string) => {

@@ -6,6 +6,7 @@ import {
   CameraState,
   CAMERA_COLLECTION,
 } from "../../models/camera.ts";
+import { get_user } from "./user_service.ts";
 
 export const get_cameras = () => {
   return control_room_db
@@ -27,8 +28,11 @@ export const get_camera_by_owner = (owner: string) => {
   return cameras.toArray();
 };
 
-export const save_camera = (camera: CameraDto) => {
+export const save_camera = async (camera: CameraDto) => {
   if (!camera.owner) return Error("Owner not sent");
+  const user = await get_user(camera.owner);
+  if (!user) return Error("User not found");
+
   const new_camera = {
     alias: camera.alias || camera.owner,
     owner: camera.owner,
