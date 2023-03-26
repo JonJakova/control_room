@@ -6,6 +6,7 @@ import {
   CameraState,
   CAMERA_COLLECTION,
 } from "../../models/camera.ts";
+import { get_user } from "./user_service.ts";
 
 export const get_cameras = () => {
   return control_room_db
@@ -27,8 +28,11 @@ export const get_camera_by_owner = (owner: string) => {
   return cameras.toArray();
 };
 
-export const save_camera = (camera: CameraDto) => {
+export const save_camera = async (camera: CameraDto) => {
   if (!camera.owner) return Error("Owner not sent");
+  const user = await get_user(camera.owner);
+  if (!user) return Error("User not found");
+
   const new_camera = {
     alias: camera.alias || camera.owner,
     owner: camera.owner,
@@ -41,19 +45,19 @@ export const save_camera = (camera: CameraDto) => {
     .insertOne(new_camera);
 };
 
-export const update_camera = async (id: string, camera: CameraDto) => {
-  const camera_to_update = await get_camera(id);
-  if (!camera_to_update) return Error("Camera not found");
+export const update_camera = async (camera_id: string, camera: CameraDto, user_id: string) => {
+  const camera_to_update = await get_camera(camera_id);
+  if (!camera_to_update || camera_to_update._id !== user_id) return Error("Camera not found");
 
   camera.state && (camera_to_update.state = camera.state);
   camera.deleted && (camera_to_update.deleted = camera.deleted);
   
   return control_room_db
     .collection<CameraCollection>(CAMERA_COLLECTION)
-    .updateOne({ _id: { $oid: id } }, { $set: camera_to_update });
+    .updateOne({ _id: { $oid: camera_id } }, { $set: camera_to_update });
 };
 
-export const delete_camera = (id: string) => {
+export const change_delete_camera = (id: string) => {
   return control_room_db
     .collection<CameraCollection>(CAMERA_COLLECTION)
     .updateOne({ _id: { $oid: id } }, { $set: { deleted: true } })
