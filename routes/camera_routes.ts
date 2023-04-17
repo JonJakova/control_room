@@ -40,7 +40,7 @@ camera_router.get("/:id", authorize_admin_role, async (ctx) => {
 });
 
 camera_router.get("/owner/:owner", authorize_user_role, async (ctx) => {
-  console.log("Getting camera list by owner");
+  console.log("Getting camera list by owner: ", ctx.state.user.email);
   const owner = ctx.params.owner;
   const cameras = await get_camera_by_owner(owner);
   ctx.response.status = 200;

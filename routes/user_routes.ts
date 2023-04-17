@@ -7,7 +7,7 @@ import {
   save_user,
   update_user,
 } from "./services/user_service.ts";
-import { authorize_admin_role, authorize_user_role } from "../security/jwt/authority_check.ts";
+import { authorize, authorize_admin_role, authorize_user_role } from "../security/jwt/authority_check.ts";
 
 const user_router = new Router();
 user_router.prefix("/users");
@@ -26,9 +26,9 @@ user_router.get("/", authorize_admin_role, async (ctx) => {
   });
 });
 
-user_router.get("/:id", authorize_admin_role, async (ctx) => {
-  console.log("Getting user");
-  const user = await get_user(ctx.params.id);
+user_router.get("/me", authorize, async (ctx) => {
+  console.log("Getting current user");
+  const user = await get_user(ctx.state.user.id);
   if (!user) {
     ctx.response.status = 404;
     ctx.response.body = "User not found";
@@ -43,9 +43,9 @@ user_router.get("/:id", authorize_admin_role, async (ctx) => {
   };
 });
 
-user_router.get("/me", authorize_user_role, async (ctx) => {
+user_router.get("/:id", authorize_admin_role, async (ctx) => {
   console.log("Getting user");
-  const user = await get_user(ctx.state.user.id);
+  const user = await get_user(ctx.params.id);
   if (!user) {
     ctx.response.status = 404;
     ctx.response.body = "User not found";
