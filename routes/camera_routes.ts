@@ -95,8 +95,8 @@ camera_router.patch("/", authorize_user_role, async (ctx) => {
   }
 
   // Store the camera in the database
-  const updated_camera = await update_camera(camera.id, camera, ctx.state.user);
-  if (!updated_camera) {
+  const updated_camera = await update_camera(camera, ctx.state.user.id);
+  if (updated_camera instanceof Error) {
     console.log("Camera not found");
     ctx.response.status = 404;
     ctx.response.body = "Camera not found";

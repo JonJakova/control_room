@@ -49,14 +49,14 @@ export const update_user = async (user: UserDto) => {
 
   return control_room_db
     .collection<UserCollection>(USER_COLLECTION)
-    .updateOne({ _id: { $oid: user.id } }, { $set: user_to_update });
+    .updateOne({ _id: new ObjectId(user.id) }, { $set: user_to_update });
 };
 
-export const delete_user = (id: string) => {
+export const delete_user = (user_id: string) => {
   return (
     control_room_db
       .collection<UserCollection>(USER_COLLECTION)
-      .updateOne({ _id: { $oid: id } }, { $set: { deleted: true } }) ||
+      .updateOne({ _id: new ObjectId(user_id)  }, { $set: { deleted: true } }) ||
     Error("User not found")
   );
 };

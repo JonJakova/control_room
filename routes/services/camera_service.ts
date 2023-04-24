@@ -28,13 +28,23 @@ export const get_camera_by_owner = (owner: string) => {
   return cameras.toArray();
 };
 
+// Only internal
+const get_single_camera_by_owner = (camera_id: string, owner: string) => {
+  const cameras = control_room_db
+    .collection<CameraCollection>(CAMERA_COLLECTION)
+    .findOne({ _id: new ObjectId(camera_id), owner: owner, deleted: false }, { sort: { created_at: -1 } });
+  return cameras;
+};
+
 export const save_camera = async (camera: CameraDto) => {
   if (!camera.owner) return Error("Owner not sent");
+  if (!camera.index) return Error("Index not sent");
   const user = await get_user(camera.owner);
   if (!user) return Error("User not found");
 
   const new_camera = {
     alias: camera.alias || camera.owner,
+    index: camera.index,
     owner: camera.owner,
     state: camera.state || CameraState.OFFLINE,
     created_at: new Date(),
@@ -45,21 +55,25 @@ export const save_camera = async (camera: CameraDto) => {
     .insertOne(new_camera);
 };
 
-export const update_camera = async (camera_id: string, camera: CameraDto, user_id: string) => {
-  const camera_to_update = await get_camera(camera_id);
-  if (!camera_to_update || camera_to_update._id !== user_id) return Error("Camera not found");
+export const update_camera = async (camera: CameraDto, user_id: string) => {
+  if (!camera.id) return Error("Camera id not sent");
 
+  const camera_to_update = await get_single_camera_by_owner(camera.id, user_id);
+  if (!camera_to_update) return Error("Camera not found");
+
+  camera.index != null && camera.index != undefined && (camera_to_update.index = camera.index);
+  camera.alias && (camera_to_update.alias = camera.alias);
   camera.state && (camera_to_update.state = camera.state);
   camera.deleted && (camera_to_update.deleted = camera.deleted);
   
   return control_room_db
     .collection<CameraCollection>(CAMERA_COLLECTION)
-    .updateOne({ _id: { $oid: camera_id } }, { $set: camera_to_update });
+    .updateOne({ _id: new ObjectId(camera.id) }, { $set: camera_to_update });
 };
 
-export const change_delete_camera = (id: string) => {
+export const change_delete_camera = (camera_id: string) => {
   return control_room_db
     .collection<CameraCollection>(CAMERA_COLLECTION)
-    .updateOne({ _id: { $oid: id } }, { $set: { deleted: true } })
+    .updateOne({  _id: new ObjectId(camera_id) }, { $set: { deleted: true } })
 	|| Error("Camera not found");
 };
