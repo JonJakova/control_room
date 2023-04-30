@@ -1,6 +1,6 @@
 import { control_room_db } from "../../config/mongo_connector.ts";
 import { ObjectId } from "../../dependecies.ts";
-import { UserCollection, UserDto, USER_COLLECTION } from "../../models/user.ts";
+import { UserCollection, UserDto, USER_COLLECTION, role_from_str } from "../../models/user.ts";
 import { hash, compare } from "../../security/encryption.ts";
 
 export const get_users = () => {
@@ -28,7 +28,7 @@ export const save_user = async (user: UserDto) => {
   const user_to_save = {
     email: user.email,
     password: await hash(user.password),
-    roles: user.roles || [],
+    roles: user.roles.map(r => role_from_str(r)) || [],
     created_at: new Date(),
     deleted: false,
   };
@@ -44,7 +44,7 @@ export const update_user = async (user: UserDto) => {
   if (!user_to_update) return Error("User not found");
 
   user.password && (user_to_update.password = await hash(user.password));
-  user.roles && (user_to_update.roles = user.roles);
+  user.roles && (user_to_update.roles = user.roles.map(r => role_from_str(r)));
   user.deleted && (user_to_update.deleted = user.deleted);
 
   return control_room_db
@@ -62,8 +62,10 @@ export const delete_user = (user_id: string) => {
 };
 
 export const login = async (username: string, password: string) => {
+  console.log("User: " + username + " is trying to login...");
   const user = await get_user_by_username(username);
   if (!user) return Error("User not found");
+  console.log("User found: " + user.email);
   return (await compare(password, user.password))
     ? user
     : Error("Wrong password");
