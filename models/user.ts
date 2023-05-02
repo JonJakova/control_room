@@ -2,6 +2,8 @@ export const USER_COLLECTION = "user";
 
 export interface UserCollection {
   _id: string;
+  first_name?: string;
+  last_name?: string;
   email: string;
   password: string;
   created_at: Date;
@@ -12,6 +14,8 @@ export interface UserCollection {
 
 export interface UserDto {
   id?: string;
+  first_name?: string;
+  last_name?: string;
   email: string;
   password: string;
   roles: string[];

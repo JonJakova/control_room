@@ -25,13 +25,15 @@ export const get_user_by_username = (username: string) => {
 
 export const save_user = async (user: UserDto) => {
   (await get_user_by_username(user.email)) && Error("User already exists");
-  const user_to_save = {
+  const user_to_save: any = {
     email: user.email,
     password: await hash(user.password),
     roles: user.roles.map(r => role_from_str(r)) || [],
     created_at: new Date(),
     deleted: false,
   };
+  if (user.first_name) user_to_save.first_name = user.first_name;
+  if (user.last_name) user_to_save.last_name = user.last_name;
   return control_room_db
     .collection<UserCollection>(USER_COLLECTION)
     .insertOne(user_to_save);
