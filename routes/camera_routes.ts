@@ -33,6 +33,7 @@ camera_router.get("/:id", authorize_admin_role, async (ctx) => {
   ctx.response.status = 200;
   ctx.response.body = {
     id: camera_id,
+    index: camera.index,
     alias: camera.alias,
     owner: camera.owner,
     state: camera.state,
@@ -47,6 +48,7 @@ camera_router.get("/owner/:owner", authorize_user_role, async (ctx) => {
   ctx.response.body = cameras.map((camera) => {
     return {
       id: camera._id,
+      index: camera.index,
       alias: camera.alias,
       owner: camera.owner,
       state: camera.state,
