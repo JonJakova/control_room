@@ -1,5 +1,5 @@
 import { Router } from "../dependecies.ts";
-import { CameraDto } from "../models/camera.ts";
+import { CameraDto, ChangeCameraStateDto } from "../models/camera.ts";
 import { generic_promise_adapter } from "../utils/generic_promise_adapter.ts";
 import { authorize_admin_role, authorize_user_role } from "../security/jwt/authority_check.ts";
 import {
@@ -8,6 +8,8 @@ import {
   get_camera_by_owner,
   save_camera,
   update_camera,
+change_camera_state,
+get_single_camera_by_owner,
 } from "./services/camera_service.ts";
 
 const camera_router = new Router();
@@ -108,5 +110,38 @@ camera_router.patch("/", authorize_user_role, async (ctx) => {
   console.log("Camera updated");
   ctx.response.status = 200;
 });
+
+camera_router.post("/change-state", authorize_user_role, async (ctx) => {
+  console.log("Changing camera state");
+  const camera = await generic_promise_adapter<ChangeCameraStateDto>(
+    ctx.request.body().value
+  );
+
+  if (camera instanceof Error || !camera.id || !camera.state) {
+    console.log("Missing or invalid body in request");
+    ctx.response.status = 400;
+    ctx.response.body = "Bad Request";
+    return;
+  }
+
+  // Store the camera in the database
+  if (!await get_single_camera_by_owner(camera.id, ctx.state.user.id)) {
+    console.log("Camera not found");
+    ctx.response.status = 404;
+    ctx.response.body = "Camera not found";
+    return;
+  }
+
+  const updated_camera = await change_camera_state(camera.id, ctx.state.user.id);
+  if (updated_camera instanceof Error) {
+    console.log("Camera not found");
+    ctx.response.status = 404;
+    ctx.response.body = "Camera not found";
+    return;
+  }
+
+  console.log("Camera state updated");
+  ctx.response.status = 200;
+})
 
 export { camera_router };

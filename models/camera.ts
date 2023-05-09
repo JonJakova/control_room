@@ -20,6 +20,11 @@ export interface CameraDto {
   deleted: boolean;
 }
 
+export interface ChangeCameraStateDto {
+  id: string;
+  state: CameraState;
+}
+
 export enum CameraState {
   OFFLINE = "offline",
   ONLINE = "online",

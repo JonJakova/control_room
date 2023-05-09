@@ -28,8 +28,7 @@ export const get_camera_by_owner = (owner: string) => {
   return cameras.toArray();
 };
 
-// Only internal
-const get_single_camera_by_owner = (camera_id: string, owner: string) => {
+export const get_single_camera_by_owner = (camera_id: string, owner: string) => {
   const cameras = control_room_db
     .collection<CameraCollection>(CAMERA_COLLECTION)
     .findOne({ _id: new ObjectId(camera_id), owner: owner, deleted: false }, { sort: { created_at: -1 } });
@@ -77,3 +76,10 @@ export const change_delete_camera = (camera_id: string) => {
     .updateOne({  _id: new ObjectId(camera_id) }, { $set: { deleted: true } })
 	|| Error("Camera not found");
 };
+
+export const change_camera_state = (camera_id: string, state: CameraState) => {
+  return control_room_db
+    .collection<CameraCollection>(CAMERA_COLLECTION)
+    .updateOne({ _id: new ObjectId(camera_id) }, { $set: { state: state } })
+  || Error("Camera not found");
+}
