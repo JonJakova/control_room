@@ -111,7 +111,7 @@ camera_router.patch("/", authorize_user_role, async (ctx) => {
   ctx.response.status = 200;
 });
 
-camera_router.post("/change-state", authorize_user_role, async (ctx) => {
+camera_router.patch("/change-state", authorize_user_role, async (ctx) => {
   console.log("Changing camera state");
   const camera = await generic_promise_adapter<ChangeCameraStateDto>(
     ctx.request.body().value
@@ -132,7 +132,7 @@ camera_router.post("/change-state", authorize_user_role, async (ctx) => {
     return;
   }
 
-  const updated_camera = await change_camera_state(camera.id, ctx.state.user.id);
+  const updated_camera = await change_camera_state(camera.id, camera.state);
   if (updated_camera instanceof Error) {
     console.log("Camera not found");
     ctx.response.status = 404;
